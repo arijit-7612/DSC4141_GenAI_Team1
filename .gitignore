@@ -1,0 +1,8 @@
+# Python
+__pycache__/
+*.py[cod]
+backend/meal_planner.db
+
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
