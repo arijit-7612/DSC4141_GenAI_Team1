@@ -33,7 +33,7 @@ class RecipeApiTests(unittest.TestCase):
                 "name": "Tomato Pasta",
                 "ingredients": [
                     {"name": "Pasta", "quantity": 200, "unit": "g"},
-                    {"name": "Tomato", "quantity": 3, "unit": "pcs"},
+                    {"name": "Tomato", "quantity": 3, "unit": "piece"},
                 ],
             },
         )
@@ -42,7 +42,7 @@ class RecipeApiTests(unittest.TestCase):
         self.assertEqual(recipe["name"], "Tomato Pasta")
         self.assertEqual(recipe["ingredients"], [
             {"id": recipe["ingredients"][0]["id"], "name": "Pasta", "quantity": 200.0, "unit": "g"},
-            {"id": recipe["ingredients"][1]["id"], "name": "Tomato", "quantity": 3.0, "unit": "pcs"},
+            {"id": recipe["ingredients"][1]["id"], "name": "Tomato", "quantity": 3.0, "unit": "piece"},
         ])
 
         listed = self.client.get("/api/recipes")
@@ -59,7 +59,7 @@ class RecipeApiTests(unittest.TestCase):
                 "name": "Tomato Basil Pasta",
                 "ingredients": [
                     {"name": "Pasta", "quantity": 250, "unit": "g"},
-                    {"name": "Basil", "quantity": 10, "unit": "leaves"},
+                    {"name": "Basil", "quantity": 10, "unit": "bunch"},
                 ],
             },
         )
@@ -86,6 +86,21 @@ class RecipeApiTests(unittest.TestCase):
             },
         )
         self.assertEqual(response.status_code, 422)
+
+    def test_recipe_names_are_normalized(self):
+        response = self.client.post(
+            "/api/recipes",
+            json={
+                "name": "  bIRYANI  ",
+                "ingredients": [
+                    {"name": "  basmati RICE ", "quantity": 200, "unit": "g"},
+                ],
+            },
+        )
+        self.assertEqual(response.status_code, 201)
+        recipe = response.json()
+        self.assertEqual(recipe["name"], "Biryani")
+        self.assertEqual(recipe["ingredients"][0]["name"], "Basmati Rice")
 
 
 if __name__ == "__main__":

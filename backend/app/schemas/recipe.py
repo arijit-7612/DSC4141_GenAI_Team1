@@ -1,15 +1,41 @@
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+RecipeUnit = Literal[
+    "g",
+    "kg",
+    "ml",
+    "L",
+    "tsp",
+    "tbsp",
+    "cup",
+    "piece",
+    "clove",
+    "slice",
+    "can",
+    "packet",
+    "bottle",
+    "bunch",
+]
+
+
+def normalize_name(value: str) -> str:
+    """Normalize names to title case with single spaces."""
+    value = " ".join(value.split())
+    return " ".join(word.capitalize() for word in value.split(" "))
 
 
 class RecipeIngredientInput(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     quantity: float = Field(gt=0)
-    unit: str = Field(min_length=1, max_length=50)
+    unit: RecipeUnit
 
-    @field_validator("name", "unit")
+    @field_validator("name")
     @classmethod
     def strip_required_text(cls, value: str) -> str:
-        value = value.strip()
+        value = normalize_name(value)
         if not value:
             raise ValueError("must not be blank")
         return value
@@ -22,7 +48,7 @@ class RecipeBase(BaseModel):
     @field_validator("name")
     @classmethod
     def strip_recipe_name(cls, value: str) -> str:
-        value = value.strip()
+        value = normalize_name(value)
         if not value:
             raise ValueError("must not be blank")
         return value

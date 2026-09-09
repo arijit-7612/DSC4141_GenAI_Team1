@@ -11,6 +11,23 @@ type Props = {
   onSubmit: (recipe: RecipeInput) => Promise<void>;
 };
 
+const UNIT_OPTIONS = [
+  "g",
+  "kg",
+  "ml",
+  "L",
+  "tsp",
+  "tbsp",
+  "cup",
+  "piece",
+  "clove",
+  "slice",
+  "can",
+  "packet",
+  "bottle",
+  "bunch",
+];
+
 const blankIngredient = (): IngredientDraft => ({ name: "", quantity: "", unit: "" });
 
 export function RecipeForm({ initialValue, submitLabel, onSubmit }: Props) {
@@ -67,7 +84,7 @@ export function RecipeForm({ initialValue, submitLabel, onSubmit }: Props) {
       {ingredients.map((ingredient, index) => <div className="ingredient-row" key={index}>
         <label>Name<input value={ingredient.name} onChange={(event) => updateIngredient(index, "name", event.target.value)} required /></label>
         <label>Quantity<input type="number" min="0.01" step="any" value={ingredient.quantity} onChange={(event) => updateIngredient(index, "quantity", event.target.value)} required /></label>
-        <label>Unit<input value={ingredient.unit} onChange={(event) => updateIngredient(index, "unit", event.target.value)} placeholder="e.g. g, cups" required /></label>
+        <label>Unit<select value={ingredient.unit} onChange={(event) => updateIngredient(index, "unit", event.target.value)} required><option value="">Select a unit</option>{UNIT_OPTIONS.map((unit) => <option key={unit} value={unit}>{unit}</option>)}</select></label>
         <button type="button" className="link-button" disabled={ingredients.length === 1} onClick={() => setIngredients((current) => current.filter((_, itemIndex) => itemIndex !== index))}>Remove</button>
       </div>)}
     </div>
