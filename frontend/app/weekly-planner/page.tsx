@@ -37,6 +37,14 @@ export default function WeeklyPlannerPage() {
     setSearch("");
   }
 
+  function removeRecipe(cellKey: string) {
+    setPlan((current) => {
+      const updated = { ...current };
+      delete updated[cellKey];
+      return updated;
+    });
+  }
+
   return (
     <section className="page">
       <div className="page-heading">
@@ -60,6 +68,14 @@ export default function WeeklyPlannerPage() {
               return <div className="planner-cell planner-meal" role="cell" key={cellKey}>
                 <button type="button" className={`meal-picker-trigger${selectedRecipe ? " selected" : ""}`} onClick={() => openPicker(cellKey)}>
                   {selectedRecipe ?? "Select a recipe"}
+                  {selectedRecipe && <span
+                    className="meal-remove"
+                    aria-label={`Remove recipe from ${day} ${meal}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={(event) => { event.stopPropagation(); removeRecipe(cellKey); }}
+                    onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); removeRecipe(cellKey); } }}
+                  >×</span>}
                 </button>
                 {activeCell === cellKey && <div className="recipe-picker">
                   <input
