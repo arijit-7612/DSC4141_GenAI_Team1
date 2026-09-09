@@ -7,7 +7,13 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models import Ingredient, Recipe, RecipeIngredient
-from app.schemas.recipe import RecipeCreate, RecipeIngredientRead, RecipeRead, RecipeUpdate
+from app.schemas.recipe import (
+    RecipeCreate,
+    RecipeIngredientRead,
+    RecipeRead,
+    RecipeUpdate,
+    normalize_name,
+)
 
 
 def _recipe_query():
@@ -31,6 +37,8 @@ def _get_or_create_ingredient(db: Session, name: str) -> Ingredient:
         ingredient = Ingredient(name=name)
         db.add(ingredient)
         db.flush()
+    else:
+        ingredient.name = normalize_name(ingredient.name)
     return ingredient
 
 
@@ -52,11 +60,11 @@ def _replace_ingredients(
 def _serialize(recipe: Recipe) -> RecipeRead:
     return RecipeRead(
         id=recipe.id,
-        name=recipe.name,
+        name=normalize_name(recipe.name),
         ingredients=[
             RecipeIngredientRead(
                 id=association.ingredient.id,
-                name=association.ingredient.name,
+                name=normalize_name(association.ingredient.name),
                 quantity=float(association.quantity),
                 unit=association.unit,
             )
