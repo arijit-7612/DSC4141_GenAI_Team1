@@ -1,55 +1,37 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { EmptyState } from "../components/EmptyState";
+import { Recipe, recipesApi } from "../lib/recipes";
 
 export default function Home() {
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => { recipesApi.list().then(setRecipes).catch(() => setError("We couldn’t load your recipes right now.")).finally(() => setLoading(false)); }, []);
+
   return (
-    <section className="home-page">
-      <div className="home-intro">
-        <p className="eyebrow">Smart Bite</p>
-        <h1>What would you like to do?</h1>
-        <p>Plan your meals and keep your kitchen organized.</p>
-      </div>
-
-      <div className="home-options">
-        <Link href="/recipes" className="home-option">
-          <svg className="option-icon" viewBox="0 0 96 96" aria-hidden="true">
-            <path d="M17 40h62l-5 37H22l-5-37Z" />
-            <path d="M12 40h72M28 40c0-11 8-20 20-20s20 9 20 20M32 51v15M48 51v15M64 51v15" />
-            <circle cx="34" cy="31" r="5" />
-            <circle cx="48" cy="25" r="5" />
-            <circle cx="62" cy="31" r="5" />
-          </svg>
-          <span className="option-title">Recipes</span>
-          <span className="option-description">Browse your saved recipe library.</span>
-        </Link>
-
-        <Link href="/recipes/new" className="home-option">
-          <svg className="option-icon" viewBox="0 0 96 96" aria-hidden="true">
-            <path d="M20 74h56M27 65V22h42v43M35 32h26M35 43h26M35 54h14" />
-            <path d="M62 57v20M52 67h20" />
-          </svg>
-          <span className="option-title">Add recipe</span>
-          <span className="option-description">Save a new recipe to your library.</span>
-        </Link>
-
-        <Link href="/weekly-planner" className="home-option">
-          <svg className="option-icon" viewBox="0 0 96 96" aria-hidden="true">
-            <rect x="17" y="22" width="62" height="59" rx="5" />
-            <path d="M17 38h62M31 15v14M65 15v14M29 51h10M43 51h10M57 51h10M29 64h10M43 64h10" />
-          </svg>
-          <span className="option-title">Weekly planner</span>
-          <span className="option-description">Build your personalized weekly meal plan.</span>
-        </Link>
-
-        <div className="home-option unavailable" aria-disabled="true">
-          <svg className="option-icon" viewBox="0 0 96 96" aria-hidden="true">
-            <path d="M24 22h48v58H24zM32 34h32M32 46h32M32 58h20" />
-            <path d="m59 66 6 6 11-13" />
-          </svg>
-          <span className="option-title">Grocery list</span>
-          <span className="option-description">Create a shopping list from your recipes.</span>
-          <span className="coming-soon">Coming soon</span>
+    <section className="dashboard">
+      <div className="hero">
+        <div>
+          <p className="eyebrow">Your healthier routine starts here</p>
+          <h1>Plan your meals.<br />Eat better. Shop smarter.</h1>
+          <p className="hero-copy">Build a recipe collection, map out your week, and make every trip to the kitchen a little simpler.</p>
+          <div className="hero-actions"><Link href="/weekly-planner" className="button">Plan your week</Link><Link href="/recipes" className="button secondary">Browse recipes</Link></div>
         </div>
+        <div className="hero-art" aria-hidden="true"><span>🥬</span><span>🥕</span><span>🍋</span><div className="hero-art-card">A calmer way<br />to eat well</div></div>
       </div>
+      <div className="overview-grid">
+        <article className="overview-card"><span className="overview-icon">⌘</span><p>Your recipes</p><strong>{loading ? "—" : recipes.length}</strong><span>Recipes in your library</span></article>
+        <Link href="/weekly-planner" className="overview-card overview-link"><span className="overview-icon">▦</span><p>Weekly planner</p><strong>Plan meals</strong><span>Shape your week around your recipes →</span></Link>
+        <Link href="/grocery-list" className="overview-card overview-link"><span className="overview-icon">✓</span><p>Grocery list</p><strong>Stay prepared</strong><span>Keep your next shop organized →</span></Link>
+      </div>
+
+      <section className="dashboard-section"><div className="section-heading"><div><p className="eyebrow">Recipe library</p><h2>Recently added</h2></div><Link href="/recipes" className="text-link">View all recipes →</Link></div>
+        {loading ? <div className="recipe-grid skeleton-grid" aria-label="Loading recipes"><div /><div /><div /></div> : error ? <div className="error-panel" role="alert"><strong>{error}</strong><button className="button secondary" onClick={() => window.location.reload()}>Try again</button></div> : recipes.length === 0 ? <EmptyState icon="☷" title="No recipes yet" description="Start building your recipe collection for easier weeks ahead." actionHref="/recipes/new" actionLabel="Add a recipe" /> : <div className="recipe-grid">{recipes.slice(0, 3).map((recipe) => <Link href={`/recipes/${recipe.id}`} className="recipe-card" key={recipe.id}><span className="recipe-card-icon">◒</span><h3>{recipe.name}</h3><p>{recipe.ingredients.length} ingredient{recipe.ingredients.length === 1 ? "" : "s"}</p><span className="card-link">View recipe →</span></Link>)}</div>}
+      </section>
     </section>
   );
 }
