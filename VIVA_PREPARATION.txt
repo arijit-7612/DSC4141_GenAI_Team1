@@ -1,0 +1,516 @@
+SMART BITE - VIVA PREPARATION
+================================
+
+
+1. 30-SECOND PROJECT EXPLANATION
+--------------------------------
+
+My project is a full-stack meal-planning application called Smart Bite. Users
+can create, view, edit, delete, and search recipes with their ingredients.
+They can also assign recipes to meals across a weekly planner.
+
+The frontend is built with Next.js, React, and TypeScript. The backend uses
+Python, FastAPI, and SQLAlchemy to expose REST APIs. Recipe and ingredient
+data is stored in a relational database.
+
+The larger goal is to extend the application with AI-based meal planning,
+nutrition analysis, budget constraints, and automatic grocery-list generation.
+The currently implemented functionality mainly covers the recipe library and
+weekly planner. The AI, RAG, and grocery-list features are planned extensions.
+
+
+2. PROJECT TECHNOLOGY STACK
+---------------------------
+
+Frontend:
+  - Next.js
+  - React
+  - TypeScript
+  - Custom CSS
+
+Backend:
+  - Python
+  - FastAPI
+  - Uvicorn
+
+Database and persistence:
+  - SQLAlchemy ORM
+  - SQLite by default for development
+  - PostgreSQL support through configuration
+
+Validation:
+  - Pydantic schemas
+  - Frontend validation using React state and form logic
+
+Communication:
+  - REST API
+  - JSON request and response data
+
+Testing:
+  - Python unittest
+  - FastAPI TestClient
+
+
+3. LIKELY VIVA QUESTIONS AND ANSWERS
+=====================================
+
+
+Q1. What problem does your project solve?
+------------------------------------------
+
+Answer:
+
+The project helps users organize recipes and plan meals for the week. Instead
+of keeping recipes and meal plans separately, the application provides one
+interface for managing recipes and assigning them to breakfast, lunch, and
+dinner. The larger goal is to make meal planning and grocery preparation
+easier.
+
+
+Q2. What technologies did you use?
+-----------------------------------
+
+Answer:
+
+The frontend uses Next.js, React, and TypeScript. The backend uses Python and
+FastAPI. SQLAlchemy is used as the ORM for database operations, while
+Pydantic is used for request and response validation. The application uses
+REST APIs and JSON for communication between the frontend and backend.
+
+SQLite is used by default during development, and the configuration can be
+changed to use PostgreSQL for deployment.
+
+
+Q3. Why did you choose Next.js and React?
+------------------------------------------
+
+Answer:
+
+React allows the interface to be divided into reusable components and updated
+dynamically when application state changes. Next.js provides routing, project
+structure, and a production-ready framework around React. It makes it easy to
+create pages such as the home page, recipe list, recipe details, and weekly
+planner.
+
+
+Q4. Why did you use TypeScript?
+--------------------------------
+
+Answer:
+
+TypeScript adds static typing to JavaScript. It helps catch mistakes during
+development, especially when passing recipe and ingredient data between
+components and API functions. For example, recipe objects have clearly
+defined fields such as id, name, and ingredients.
+
+
+Q5. Why did you use FastAPI?
+-----------------------------
+
+Answer:
+
+FastAPI is suitable for building lightweight REST APIs in Python. It provides
+automatic request validation, clear route definitions, useful error
+responses, and automatic API documentation. It also integrates well with
+Pydantic and SQLAlchemy.
+
+
+Q6. How does the frontend communicate with the backend?
+--------------------------------------------------------
+
+Answer:
+
+The frontend sends HTTP requests to the FastAPI backend using the browser's
+fetch API. The main recipe operations are:
+
+  - GET /api/recipes - retrieves all recipes
+  - POST /api/recipes - creates a recipe
+  - PUT /api/recipes/{id} - updates a recipe
+  - DELETE /api/recipes/{id} - deletes a recipe
+
+The frontend has shared API functions so that communication with the backend
+is organized in one place.
+
+
+Q7. What is REST, and how is it used here?
+-------------------------------------------
+
+Answer:
+
+REST is an architectural style for communication between clients and servers
+using HTTP methods.
+
+In this project:
+
+  - GET is used to retrieve data.
+  - POST is used to create data.
+  - PUT is used to update data.
+  - DELETE is used to remove data.
+
+Each operation is represented by a clear API endpoint.
+
+
+Q8. Explain your database design.
+----------------------------------
+
+Answer:
+
+The database has three main entities:
+
+  1. Recipe - stores the recipe name.
+  2. Ingredient - stores reusable ingredient names.
+  3. RecipeIngredient - connects recipes and ingredients and stores quantity
+     and unit.
+
+The third table is an association table. It represents the relationship
+between recipes and ingredients and stores recipe-specific information such
+as quantity and unit.
+
+
+Q9. Why did you use an association table?
+------------------------------------------
+
+Answer:
+
+A simple many-to-many relationship is not enough because the relationship
+itself has data. For example, pasta may be 200 grams in one recipe and
+100 grams in another. The RecipeIngredient table stores this
+recipe-specific quantity and unit.
+
+
+Q10. What is an ORM?
+---------------------
+
+Answer:
+
+ORM means Object-Relational Mapping. It allows database tables to be
+represented as Python classes. Instead of writing raw SQL for every
+operation, the application uses Python objects and SQLAlchemy queries.
+This improves readability and makes database operations easier to maintain.
+
+
+Q11. How do you validate user input?
+-------------------------------------
+
+Answer:
+
+Validation happens in two places:
+
+  - The frontend checks for missing names, invalid quantities, invalid units,
+    and duplicate ingredients.
+  - The backend uses Pydantic schemas to validate each request independently.
+
+Backend validation is important because requests can potentially come from
+outside the frontend. It ensures invalid data does not enter the database.
+
+
+Q12. Why validate on both frontend and backend?
+-----------------------------------------------
+
+Answer:
+
+Frontend validation gives the user immediate feedback and improves the user
+experience. Backend validation protects the application and database because
+frontend validation can be bypassed. Both layers are needed for usability
+and reliability.
+
+
+Q13. How does the application handle database sessions?
+--------------------------------------------------------
+
+Answer:
+
+The backend creates a database session for each request and closes it after
+the request is completed. This prevents database connections from remaining
+open unnecessarily. FastAPI dependency injection is used to provide the
+database session to route functions.
+
+
+Q14. What happens when a recipe does not exist?
+------------------------------------------------
+
+Answer:
+
+The service layer checks whether the recipe exists. If it does not exist, the
+backend raises an HTTP 404 error with a "Recipe not found" message. This gives
+the frontend a meaningful error instead of returning invalid or empty data.
+
+
+Q15. Why did you separate routes, services, models, and schemas?
+------------------------------------------------------------------
+
+Answer:
+
+This separation follows a layered architecture:
+
+  - Routes handle HTTP requests and responses.
+  - Schemas validate and structure input and output data.
+  - Models represent database tables.
+  - Services contain business logic.
+
+This makes the code easier to test, maintain, and extend. For example,
+recipe logic can change without putting complex database logic directly
+inside an API route.
+
+
+Q16. How does the weekly planner work?
+---------------------------------------
+
+Answer:
+
+The weekly planner displays seven days and three meal types: breakfast,
+lunch, and dinner. When a user selects a cell, the frontend opens a recipe
+picker. The selected recipe is stored in frontend state and displayed in
+that cell.
+
+At the current stage, the weekly plan is held in frontend memory and is not
+yet saved permanently in the backend.
+
+
+Q17. Is the grocery-list functionality fully implemented?
+-----------------------------------------------------------
+
+Answer:
+
+Not yet. The grocery-list page is currently a placeholder. The intended
+implementation is to collect ingredients from all selected meals, combine
+repeated ingredients, and calculate total quantities. This requires saving
+meal plans and adding backend grocery-list logic.
+
+It is better to explain this honestly rather than claim the feature is
+complete.
+
+
+Q18. Is artificial intelligence currently integrated?
+-----------------------------------------------------
+
+Answer:
+
+The project is designed for AI integration, but the currently implemented
+code mainly covers recipe CRUD operations and the weekly planner. The planned
+AI layer would use an LLM to understand user preferences and generate meal
+plans. A retrieval-based system could then find suitable recipes from the
+recipe database.
+
+The current implementation does not yet contain a complete LLM or RAG
+pipeline.
+
+
+Q19. What is RAG?
+-----------------
+
+Answer:
+
+RAG means Retrieval-Augmented Generation. Instead of asking an AI model to
+generate an answer using only its general knowledge, the system first
+retrieves relevant information from a trusted database and gives that
+information to the model as context.
+
+For this project, RAG could retrieve recipes matching a user's diet,
+allergies, budget, or cuisine preference before generating a meal plan.
+
+
+Q20. Why should deterministic calculations be handled by the backend instead
+of the AI?
+----------------------------------------------------------------------------
+
+Answer:
+
+Calculations such as ingredient totals, nutrition totals, and budget checking
+should be handled by normal backend code. This is more reliable and
+predictable than asking an AI model to calculate them. The AI is better
+suited for natural-language understanding and recommendations, while the
+backend handles exact rules and calculations.
+
+
+Q21. How would you implement automatic grocery-list generation?
+-----------------------------------------------------------------
+
+Answer:
+
+The system would:
+
+  1. Retrieve all recipes selected in the weekly plan.
+  2. Collect their ingredients.
+  3. Normalize ingredient names and units.
+  4. Group identical ingredients.
+  5. Add their quantities.
+  6. Return a combined grocery list.
+
+For example, if two meals use 2 tomatoes and 3 tomatoes, the grocery list
+would show 5 tomatoes.
+
+
+Q22. How did you test the backend?
+-----------------------------------
+
+Answer:
+
+The backend tests use FastAPI's TestClient to simulate API requests. The
+tests cover:
+
+  - Creating a recipe
+  - Listing recipes
+  - Retrieving a recipe
+  - Updating a recipe
+  - Deleting a recipe
+  - Rejecting invalid input
+  - Normalizing names
+
+The tests verify both successful operations and validation behavior.
+
+
+Q23. What is CORS and why is it needed?
+----------------------------------------
+
+Answer:
+
+CORS stands for Cross-Origin Resource Sharing. The frontend and backend run
+on different ports during development, so the browser treats them as
+different origins. CORS configuration allows the frontend to make requests
+to the backend.
+
+
+Q24. How does the application handle errors?
+----------------------------------------------
+
+Answer:
+
+The backend returns suitable HTTP status codes, such as 404 for missing
+recipes and 422 for invalid input. The frontend catches failed requests and
+displays an error message to the user. Loading states are also shown while
+requests are in progress.
+
+
+Q25. What are the limitations of the current project?
+-------------------------------------------------------
+
+Answer:
+
+The main limitations are:
+
+  - User authentication is not implemented.
+  - Weekly plans are not persisted yet.
+  - Grocery-list generation is not connected to the backend.
+  - Nutrition and budget calculations are not fully implemented.
+  - AI and RAG integration are planned rather than complete.
+  - SQLite is suitable for development but not ideal for large-scale
+    production deployment.
+
+
+Q26. How would you improve the project in the future?
+-------------------------------------------------------
+
+Answer:
+
+I would add:
+
+  - User accounts and authentication
+  - Persistent weekly meal plans
+  - Grocery-list generation
+  - Nutrition and budget tracking
+  - LLM-based meal recommendations
+  - RAG-based recipe retrieval
+  - PostgreSQL with vector search
+  - Better mobile responsiveness and possibly a mobile application
+  - Deployment using Docker and a cloud platform
+
+
+4. QUESTIONS ABOUT DESIGN DECISIONS
+====================================
+
+
+Why use SQLite during development?
+-----------------------------------
+
+SQLite is simple, lightweight, and does not require a separate database
+server. It is useful for local development and testing. The application is
+configured so that the database URL can be changed to PostgreSQL when
+deploying to a production environment.
+
+
+Why use Pydantic?
+-----------------
+
+Pydantic converts incoming JSON into validated Python data structures. It
+ensures that fields have the correct types and enforces rules such as
+positive quantities and valid units.
+
+
+Why normalize names?
+--------------------
+
+Normalization prevents inconsistent data such as "tomato", " Tomato ", and
+"TOMATO" from being treated as completely different ingredients. This
+improves searching, deduplication, and future grocery-list aggregation.
+
+
+Why use frontend state?
+-----------------------
+
+Frontend state allows the interface to respond immediately to user actions.
+For example, when a recipe is selected in the planner, the cell updates
+without reloading the page.
+
+
+5. IMPORTANT POINTS TO REMEMBER
+===============================
+
+  - Do not claim that AI, RAG, PostgreSQL, or grocery automation is fully
+    implemented if you are asked about the actual code.
+  - Say that those are part of the intended architecture or future extension.
+  - Emphasize the working parts: recipe CRUD, validation, relational data
+    model, REST API, frontend routing, weekly planner UI, and testing.
+  - If asked what you personally contributed, explain your actual
+    responsibility honestly.
+  - Use the phrase "currently implemented" versus "planned functionality."
+
+
+6. STRONG CLOSING ANSWER
+=========================
+
+The core implemented system demonstrates a clean full-stack architecture:
+a React and Next.js frontend communicates with a FastAPI REST backend, which
+validates requests using Pydantic and persists relational data through
+SQLAlchemy. The current version focuses on recipe management and weekly
+planning, while AI meal generation, RAG, nutrition analysis, and grocery
+automation are the next extension points.
+
+
+7. SPRINT 1 RETROSPECTIVE
+=========================
+
+For our Sprint 1 retrospective, we discussed how the sprint went, what we
+completed, and what we should improve before starting Sprint 2. The purpose
+was not to blame anyone. It was to look at our way of working and learn from
+the problems we faced.
+
+First, we checked our Sprint 1 goal. We were able to complete a working part
+of the application from the frontend through the backend and database. This
+gave us something that we could run and demonstrate instead of only having
+separate unfinished parts.
+
+One thing that went well was using GitHub to organize our work. We used issues
+to keep track of tasks and branches and pull requests to manage code changes.
+The code review process also gave us a chance to check each other's work.
+Using GenAI was helpful for getting ideas, creating some initial code, and
+helping with debugging and tests. However, we still had to read and test the
+code ourselves.
+
+There were also some difficulties during the sprint. Some tasks took longer
+than we expected, especially when different parts of the application had to
+work together. Some requirements and acceptance criteria could have been
+clearer before we started coding. We also found that AI-generated code did not
+always handle validation or edge cases correctly. This showed us that we
+cannot simply copy generated code without checking it.
+
+For Sprint 2, we decided to make the acceptance criteria clearer before
+starting each task. We will also test invalid and empty inputs earlier, keep
+the GitHub Project board updated, and make sure that AI-generated code is
+reviewed and tested before it is merged. These changes should help us avoid
+repeating the same problems.
+
+Our retrospective took approximately 15 minutes. We discussed what went well,
+what did not go well, and the actions we will take in the next sprint. The
+main outcome was that we understood the importance of planning, testing, code
+review, and communicating regularly while working as a team.
