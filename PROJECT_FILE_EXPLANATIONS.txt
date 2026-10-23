@@ -1,0 +1,456 @@
+SMART BITE - PROJECT FILE EXPLANATIONS
+======================================
+
+This document explains the important files in the project in simple terms.
+The project has a Next.js/React frontend and a Python/FastAPI backend.
+
+The main implemented feature is recipe management. The weekly planner is
+implemented in the frontend, while the grocery-list page is currently a
+placeholder for a future backend feature.
+
+
+1. ROOT-LEVEL FILES
+===================
+
+README.md
+---------
+This is the general project documentation. It explains the original idea,
+planned features, architecture, technology stack, setup commands, and future
+enhancements. It describes the larger GenAI meal-planning vision, including
+RAG, nutrition, budget handling, and grocery-list generation. Some of these
+features are planned rather than fully implemented in the current version.
+
+VIVA_PREPARATION.txt
+--------------------
+This is a study document for the project viva. It contains the project
+overview, technology-stack explanations, likely questions and answers,
+implementation concepts, Agile information, GenAI usage, and the Sprint 1
+retrospective.
+
+PROJECT_FILE_EXPLANATIONS.txt
+-----------------------------
+This file is the current document. It gives a file-by-file explanation of the
+project so that each important file can be explained during the viva.
+
+AI_Usage_Log_Sprint1.docx
+-------------------------
+This records how GenAI tools were used during Sprint 1. It can be used to
+show what AI helped with, what output was accepted, and what required human
+checking or correction.
+
+AI_Usage_Log_Sprint1_backup.docx
+--------------------------------
+This is a backup copy of the Sprint 1 AI usage log.
+
+DSC4141-Notes01.pdf
+-------------------
+These are the course notes used for the Agile, sprint, GitHub, GenAI, and
+retrospective requirements.
+
+.gitignore
+----------
+This tells Git which files and folders should not be added to version
+control. It normally excludes generated files, local environments, databases,
+build output, and installed dependencies.
+
+
+2. BACKEND FILES
+================
+
+backend/requirements.txt
+------------------------
+This lists the Python packages needed by the backend:
+
+- FastAPI is used to create the REST API.
+- Uvicorn runs the FastAPI application.
+- SQLAlchemy connects Python code to the database using ORM models.
+- psycopg allows PostgreSQL support.
+- httpx is used by the test/client tooling.
+
+The version ranges help keep the environment compatible.
+
+backend/meal_planner.db
+-----------------------
+This is the local SQLite database file used when DATABASE_URL is not set.
+It stores the current recipe, ingredient, and recipe-ingredient association
+data. It is a development database, not the Python code itself.
+
+backend/app/__init__.py
+-----------------------
+This marks the app folder as a Python package. It allows the backend modules
+to be imported using paths such as app.main.
+
+backend/app/main.py
+-------------------
+This is the entry point of the FastAPI backend.
+
+- It creates the FastAPI application.
+- It creates database tables when the application starts.
+- It enables CORS so the frontend running on localhost can call the API.
+- It includes the recipe API router.
+- It provides GET /health, which is a simple health-check endpoint.
+
+The backend is normally started with:
+
+    uvicorn app.main:app --reload
+
+backend/app/database.py
+-----------------------
+This contains the database configuration.
+
+- DATABASE_URL is read from the environment.
+- SQLite is used as the default local database.
+- SQLAlchemy creates the database engine.
+- Base is the parent class for all database models.
+- SessionLocal creates database sessions.
+- get_db gives each API request a session and closes it afterwards.
+
+This keeps database connection handling in one place.
+
+
+3. BACKEND DATABASE MODELS
+==========================
+
+backend/app/models/__init__.py
+------------------------------
+This exposes the model classes from one package. It allows other files to
+import Recipe, Ingredient, and RecipeIngredient together.
+
+backend/app/models/recipe.py
+----------------------------
+This defines the Recipe table.
+
+- Each recipe has an id and a name.
+- A recipe can have many ingredient associations.
+- The relationship uses cascade delete, so its associations are removed when
+  the recipe is deleted.
+
+backend/app/models/ingredient.py
+--------------------------------
+This defines the Ingredient table.
+
+- Each ingredient has an id and a unique name.
+- The same ingredient can be used in many different recipes.
+- The relationship connects ingredients to their recipe associations.
+
+backend/app/models/recipe_ingredient.py
+---------------------------------------
+This defines the linking table between recipes and ingredients.
+
+It is needed because recipes and ingredients have a many-to-many relationship:
+one recipe has many ingredients, and one ingredient can appear in many
+recipes.
+
+This table also stores information that belongs to the relationship itself:
+
+- recipe_id
+- ingredient_id
+- quantity
+- unit
+
+The unique constraint prevents the same ingredient from being added twice to
+one recipe.
+
+
+4. BACKEND VALIDATION AND API FILES
+===================================
+
+backend/app/schemas/__init__.py
+-------------------------------
+This marks the schemas folder as a Python package.
+
+backend/app/schemas/recipe.py
+-----------------------------
+This defines the request and response schemas using Pydantic.
+
+- It limits ingredient units to allowed values such as g, kg, ml, cup, and
+  piece.
+- It checks that names are not empty.
+- It checks that quantities are greater than zero.
+- It requires at least one ingredient.
+- It rejects duplicate ingredients in one recipe.
+- It normalizes names by removing extra spaces and applying title case.
+- RecipeCreate and RecipeUpdate describe incoming data.
+- RecipeRead and RecipeIngredientRead describe outgoing API data.
+
+Schemas protect the API from invalid input and make the expected data format
+clear.
+
+backend/app/api/__init__.py
+---------------------------
+This marks the API folder as a Python package.
+
+backend/app/api/recipes.py
+--------------------------
+This contains the recipe routes, or endpoints.
+
+The available endpoints are:
+
+- POST /api/recipes - create a recipe.
+- GET /api/recipes - list all recipes.
+- GET /api/recipes/{recipe_id} - get one recipe.
+- PUT /api/recipes/{recipe_id} - update a recipe.
+- DELETE /api/recipes/{recipe_id} - delete a recipe.
+
+The route file receives HTTP requests and passes the actual work to the
+recipe service. This keeps the route layer simple.
+
+
+5. BACKEND BUSINESS LOGIC
+=========================
+
+backend/app/services/__init__.py
+--------------------------------
+This marks the services folder as a Python package.
+
+backend/app/services/recipe_service.py
+--------------------------------------
+This contains the main recipe business logic.
+
+- It creates, lists, reads, updates, and deletes recipes.
+- It finds an existing recipe or returns a 404 error.
+- It finds an existing ingredient without treating different letter cases as
+  separate ingredients.
+- It creates a new ingredient when necessary.
+- It replaces ingredient associations when a recipe is updated.
+- It converts database objects into the response format.
+- It commits changes to the database.
+
+Keeping this logic in a service layer separates database/business operations
+from the HTTP route definitions.
+
+
+6. BACKEND TEST FILES
+=====================
+
+backend/tests/__init__.py
+-------------------------
+This marks the tests folder as a Python package.
+
+backend/tests/test_recipes.py
+-----------------------------
+This tests the recipe API using FastAPI's TestClient.
+
+The tests check that:
+
+- A recipe can be created with ingredients.
+- Recipes can be listed and viewed.
+- A recipe can be updated.
+- A recipe can be deleted.
+- A deleted recipe returns a 404 when requested.
+- Blank names, zero quantities, and duplicate ingredients are rejected.
+- Recipe and ingredient names are normalized correctly.
+
+The tests use a temporary SQLite database so that testing does not change the
+normal development database.
+
+
+7. FRONTEND CONFIGURATION FILES
+===============================
+
+frontend/package.json
+---------------------
+This describes the frontend project and its npm commands.
+
+- npm run dev starts the development server.
+- npm run build creates a production build.
+- npm run start runs the production build.
+
+The main dependencies are Next.js, React, and React DOM. TypeScript and the
+React type packages are development dependencies.
+
+frontend/package-lock.json
+--------------------------
+This records the exact dependency versions installed by npm. It helps the
+project install the same dependency tree on another machine.
+
+frontend/tsconfig.json
+----------------------
+This configures the TypeScript compiler. It controls how TypeScript files are
+checked and compiled in the Next.js project.
+
+frontend/next-env.d.ts
+----------------------
+This is a generated TypeScript declaration file supplied by Next.js. It gives
+TypeScript the correct types for the Next.js environment.
+
+frontend/tsconfig.tsbuildinfo
+-----------------------------
+This is generated TypeScript build information. It helps TypeScript perform
+incremental checks more quickly and is not application logic.
+
+
+8. FRONTEND APP PAGES
+=====================
+
+frontend/app/layout.tsx
+-----------------------
+This is the root layout shared by all pages.
+
+- It imports the global CSS.
+- It sets the page metadata such as the title and description.
+- It displays the SiteHeader on every page.
+- It places the current page inside the main element.
+
+frontend/app/page.tsx
+---------------------
+This is the home dashboard.
+
+- It loads recipes from the backend.
+- It shows the number of recipes.
+- It provides links to the planner, recipe library, and grocery list.
+- It displays recently added recipes.
+- It shows loading, error, and empty states.
+
+frontend/app/recipes/page.tsx
+-----------------------------
+This is the recipe library page.
+
+- It loads all recipes from the API.
+- It provides a search box that filters recipe names.
+- It displays recipe cards.
+- It links to the recipe detail page.
+- It provides a button for creating a new recipe.
+
+frontend/app/recipes/new/page.tsx
+---------------------------------
+This is the create-recipe page.
+
+- It displays the reusable RecipeForm component.
+- It sends the completed form to the create API method.
+- It shows a success dialog after the recipe is saved.
+- It allows the user to go to the recipe list or home page.
+
+frontend/app/recipes/[id]/page.tsx
+----------------------------------
+This is the detail page for one recipe. The [id] part is a dynamic route,
+which means the page can display different recipes based on the URL.
+
+- It loads one recipe using its id.
+- It displays the recipe ingredients.
+- It allows the recipe to be edited.
+- It allows the recipe to be deleted after confirmation.
+- It shows loading and error states.
+
+frontend/app/weekly-planner/page.tsx
+------------------------------------
+This is the weekly meal-planner page.
+
+- It loads recipes from the backend.
+- It displays seven days and three meal types.
+- It lets the user choose a recipe for each cell.
+- It provides search inside the recipe picker.
+- It allows a selected recipe to be removed.
+
+The current plan is held in frontend state, so this page demonstrates the
+planner interface, but the plan is not yet saved to the backend.
+
+frontend/app/grocery-list/page.tsx
+----------------------------------
+This is the grocery-list page. It currently displays an empty-state message
+explaining that grocery-list generation is not connected to the backend yet.
+It links the user to the weekly planner. This is a planned extension point.
+
+frontend/app/globals.css
+------------------------
+This contains the global styling for the frontend.
+
+It defines the color palette, fonts, spacing, buttons, cards, forms, recipe
+grids, loading states, planner layout, dialogs, responsive layout, and other
+visual details. It gives the application a consistent appearance across all
+pages.
+
+
+9. FRONTEND COMPONENTS AND API CLIENT
+=====================================
+
+frontend/components/SiteHeader.tsx
+----------------------------------
+This is the shared navigation header.
+
+- It displays the Smart Bite brand.
+- It links to Recipes, Weekly Planner, and Grocery List.
+- It highlights the current page.
+- It provides an Add recipe button.
+
+frontend/components/EmptyState.tsx
+----------------------------------
+This is a reusable component for pages that have no content yet. It displays
+an icon, a title, a description, and an optional action button. Reusing it
+keeps empty screens consistent.
+
+frontend/components/RecipeForm.tsx
+----------------------------------
+This is the reusable form for creating and editing recipes.
+
+- It stores form values using React state.
+- It lets the user add and remove ingredients.
+- It accepts ingredient names, quantities, and units.
+- It checks required values, positive quantities, and duplicate names before
+  submitting.
+- It displays validation errors.
+- It shows a saving state while the API request is running.
+- It can be used for both new recipes and existing recipes.
+
+frontend/lib/recipes.ts
+-----------------------
+This is the frontend API client and TypeScript data model.
+
+- It defines the Recipe, RecipeIngredient, and RecipeInput types.
+- It stores the backend base URL using NEXT_PUBLIC_API_URL, with localhost as
+  the default.
+- It provides one request helper for sending fetch requests.
+- It handles failed HTTP responses and converts them to readable errors.
+- It provides list, get, create, update, and remove methods.
+
+This keeps API calls in one place instead of repeating fetch code in every
+page.
+
+
+10. GENERATED OR LOCAL FOLDERS
+==============================
+
+backend/.venv
+-------------
+This is the local Python virtual environment. It contains installed backend
+packages. It is machine-specific and should not be treated as application
+source code.
+
+frontend/node_modules
+---------------------
+This contains packages installed by npm. It is generated from package.json
+and package-lock.json and is not handwritten project code.
+
+frontend/.next
+-------------
+This is generated Next.js build and development output. It contains compiled
+and cached files used by Next.js.
+
+__pycache__ folders
+-------------------
+These contain Python bytecode generated when Python modules run. They are
+cache files and do not contain the main source code.
+
+frontend/tsconfig.tsbuildinfo
+-----------------------------
+This is generated TypeScript cache information used to speed up later builds.
+
+
+11. SIMPLE REQUEST FLOW TO EXPLAIN
+==================================
+
+When a user creates a recipe, the flow is:
+
+1. The user fills in RecipeForm.tsx.
+2. The form performs basic browser-side validation.
+3. recipes.ts sends a POST request to /api/recipes.
+4. FastAPI receives the request in api/recipes.py.
+5. Pydantic validates the request using schemas/recipe.py.
+6. recipe_service.py applies the business logic.
+7. SQLAlchemy stores the recipe and ingredient relationships using the model
+   files.
+8. The backend returns a RecipeRead response.
+9. The frontend shows the saved recipe or an error message.
+
+This separation of frontend, API routes, validation, services, and models
+makes the project easier to understand, test, and extend.
