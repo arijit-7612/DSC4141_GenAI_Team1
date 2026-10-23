@@ -448,7 +448,10 @@ export default function WeeklyPlannerPage() {
                               aria-label={`Remove recipe from ${day} ${meal}`}
                               onClick={() => removeRecipe(day, meal)}
                             >
-                              ×
+                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
+                                <line x1="2" y1="2" x2="8" y2="8" />
+                                <line x1="8" y1="2" x2="2" y2="8" />
+                              </svg>
                             </button>
                           )}
                           {!stampingRecipe && activeCell === cellKey && (
