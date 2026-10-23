@@ -55,8 +55,7 @@ export default function GroceryListPage() {
     const updated = { ...checkedItems };
     for (const item of data.items) {
       if (!item.show_quantity) {
-        const itemKey = `${item.name}-${item.unit}`;
-        updated[itemKey] = true;
+        updated[item.name] = true;
       }
     }
     setCheckedItems(updated);
@@ -168,7 +167,7 @@ export default function GroceryListPage() {
             {categories.map((group) => {
               const icon = CATEGORY_ICONS[group.category] ?? "🛒";
               const groupCheckedCount = group.items.filter(
-                (item) => checkedItems[`${item.name}-${item.unit}`]
+                (item) => checkedItems[item.name]
               ).length;
 
               return (
@@ -190,7 +189,7 @@ export default function GroceryListPage() {
 
                   <ul className="grocery-items-list" aria-label={`${group.category} items`}>
                     {group.items.map((item) => {
-                      const itemKey = `${item.name}-${item.unit}`;
+                      const itemKey = item.name;
                       const isChecked = Boolean(checkedItems[itemKey]);
 
                       return (
@@ -222,13 +221,9 @@ export default function GroceryListPage() {
                               )}
                             </div>
 
-                            {item.show_quantity ? (
+                            {item.show_quantity && (
                               <span className="grocery-item-qty">
                                 <strong>{item.quantity}</strong> {item.unit}
-                              </span>
-                            ) : (
-                              <span className="grocery-item-staple">
-                                Pantry staple
                               </span>
                             )}
                           </div>

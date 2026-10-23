@@ -57,6 +57,9 @@ def _replace_ingredients(
         )
 
 
+from app.services.nutrition_service import calculate_recipe_nutrition
+
+
 def _serialize(recipe: Recipe) -> RecipeRead:
     return RecipeRead(
         id=recipe.id,
@@ -70,6 +73,7 @@ def _serialize(recipe: Recipe) -> RecipeRead:
             )
             for association in recipe.ingredients
         ],
+        nutrition=calculate_recipe_nutrition(recipe, servings=1),
     )
 
 
