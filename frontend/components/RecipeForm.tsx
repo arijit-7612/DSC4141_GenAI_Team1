@@ -16,16 +16,13 @@ const UNIT_OPTIONS = [
   "kg",
   "ml",
   "L",
-  "tsp",
-  "tbsp",
-  "cup",
   "piece",
-  "clove",
-  "slice",
   "can",
-  "packet",
-  "bottle",
   "bunch",
+  "slice",
+  "clove",
+  "tbsp",
+  "tsp",
 ];
 
 const blankIngredient = (): IngredientDraft => ({ name: "", quantity: "", unit: "" });

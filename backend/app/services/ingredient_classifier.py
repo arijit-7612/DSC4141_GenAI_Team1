@@ -89,10 +89,14 @@ KNOWN_INGREDIENTS: dict[str, tuple[str, bool]] = {
     "lemon": (CAT_PRODUCE, True),
     "lime": (CAT_PRODUCE, True),
     "banana": (CAT_PRODUCE, True),
+    "blueberries": (CAT_PRODUCE, True),
+    "apple": (CAT_PRODUCE, True),
     "mixed berries": (CAT_PRODUCE, True),
     "berries": (CAT_PRODUCE, True),
     "fresh basil": (CAT_PRODUCE, True),
     "basil": (CAT_PRODUCE, True),
+    "fresh parsley": (CAT_PRODUCE, True),
+    "parsley": (CAT_PRODUCE, True),
     "romaine lettuce": (CAT_PRODUCE, True),
     "lettuce": (CAT_PRODUCE, True),
     "green onion": (CAT_PRODUCE, True),
@@ -100,60 +104,73 @@ KNOWN_INGREDIENTS: dict[str, tuple[str, bool]] = {
     "potato": (CAT_PRODUCE, True),
     "potatoes": (CAT_PRODUCE, True),
     "sweet potato": (CAT_PRODUCE, True),
+    "eggplant": (CAT_PRODUCE, True),
+    "celery": (CAT_PRODUCE, True),
+    "sweet corn": (CAT_PRODUCE, True),
     "ginger": (CAT_PRODUCE, True),
     "cilantro": (CAT_PRODUCE, True),
-    "parsley": (CAT_PRODUCE, True),
     # Meat & Seafood (show quantities)
     "chicken breast": (CAT_MEAT, True),
     "chicken": (CAT_MEAT, True),
     "chicken thigh": (CAT_MEAT, True),
     "salmon fillet": (CAT_MEAT, True),
     "salmon": (CAT_MEAT, True),
+    "smoked salmon": (CAT_MEAT, True),
     "shrimp": (CAT_MEAT, True),
     "ground beef": (CAT_MEAT, True),
+    "sirloin steak": (CAT_MEAT, True),
     "beef": (CAT_MEAT, True),
     "pork": (CAT_MEAT, True),
     "tuna": (CAT_MEAT, True),
+    "cod fillet": (CAT_MEAT, True),
+    "ground turkey": (CAT_MEAT, True),
     "turkey": (CAT_MEAT, True),
+    "turkey bacon": (CAT_MEAT, True),
     "bacon": (CAT_MEAT, True),
     # Dairy & Eggs (show quantities)
     "egg": (CAT_DAIRY, True),
     "eggs": (CAT_DAIRY, True),
     "milk": (CAT_DAIRY, True),
     "whole milk": (CAT_DAIRY, True),
+    "almond milk": (CAT_DAIRY, True),
     "greek yogurt": (CAT_DAIRY, True),
     "yogurt": (CAT_DAIRY, True),
-    "butter": (CAT_DAIRY, True),
+    "butter": (CAT_DAIRY, False),
     "cheddar cheese": (CAT_DAIRY, True),
     "parmesan cheese": (CAT_DAIRY, True),
     "feta cheese": (CAT_DAIRY, True),
     "paneer": (CAT_DAIRY, True),
-    "heavy cream": (CAT_DAIRY, True),
+    "heavy cream": (CAT_DAIRY, False),
     "mozzarella": (CAT_DAIRY, True),
-    # Bakery & Grains (show quantities)
+    "mozzarella cheese": (CAT_DAIRY, True),
+    # Bakery & Grains
     "penne pasta": (CAT_GRAINS, True),
     "pasta": (CAT_GRAINS, True),
     "spaghetti": (CAT_GRAINS, True),
     "basmati rice": (CAT_GRAINS, True),
+    "arborio rice": (CAT_GRAINS, True),
     "rice": (CAT_GRAINS, True),
     "jasmine rice": (CAT_GRAINS, True),
-    "sourdough bread": (CAT_GRAINS, True),
-    "bread": (CAT_GRAINS, True),
-    "tortilla wrap": (CAT_GRAINS, True),
-    "tortilla": (CAT_GRAINS, True),
-    "wrap": (CAT_GRAINS, True),
+    "sourdough bread": (CAT_GRAINS, False),
+    "bread": (CAT_GRAINS, False),
+    "pita bread": (CAT_GRAINS, False),
+    "tortilla wrap": (CAT_GRAINS, False),
+    "tortilla": (CAT_GRAINS, False),
+    "wrap": (CAT_GRAINS, False),
     "quinoa": (CAT_GRAINS, True),
     "rolled oats": (CAT_GRAINS, True),
     "oats": (CAT_GRAINS, True),
     "granola": (CAT_GRAINS, True),
     "all-purpose flour": (CAT_GRAINS, True),
     "flour": (CAT_GRAINS, True),
-    "croutons": (CAT_GRAINS, True),
+    "croutons": (CAT_GRAINS, False),
     "noodles": (CAT_GRAINS, True),
     # Canned & Packaged / Plant Proteins (show quantities)
     "chickpeas": (CAT_CANNED, True),
     "canned tomato": (CAT_CANNED, True),
     "canned tomatoes": (CAT_CANNED, True),
+    "marinara sauce": (CAT_CANNED, True),
+    "coconut milk": (CAT_CANNED, True),
     "red lentils": (CAT_CANNED, True),
     "lentils": (CAT_CANNED, True),
     "firm tofu": (CAT_CANNED, True),
@@ -204,7 +221,7 @@ def _try_ai_classification(ingredient_name: str, unit: str = "") -> tuple[str, b
             f"You are an expert grocery aisle classifier. Classify the ingredient '{ingredient_name}'"
             + (f" (measured in '{unit}')" if unit else "")
             + ". Choose exactly one category from: 'Produce', 'Meat & Seafood', 'Dairy & Eggs', 'Bakery & Grains', 'Canned & Packaged', 'Spices & Seasonings', 'Other'. "
-            "Also decide if shoppers need to see exact recipe quantities (true for meats, eggs, vegetables, dairy, grains; false for spices, salt, seasonings, cooking oils, garlic, sugar). "
+            "Also decide if shoppers need to see exact recipe quantities (true for whole meats, fresh produce, dry grains, milk cartons, canned goods; false for bread, butter, cheese, cooking oils, spreads, seasonings, spices, garlic, sugar, dressings). "
             'Respond ONLY with valid JSON: {"category": "...", "show_quantity": true/false}'
         )
 
@@ -244,11 +261,30 @@ def _heuristic_classification(name: str, unit: str) -> tuple[str, bool]:
     n = name.lower()
     u = unit.lower()
 
-    # Rule 1: Units typically associated with micro-seasonings
-    if u in ("tsp", "clove"):
+    # Rule 0: Units typically associated with household portions / micro-measures
+    # Never show raw recipe portion measures (slice, tbsp, tsp, clove, pinch) on shopping lists
+    if u in ("slice", "tbsp", "tsp", "clove", "pinch", "dash"):
+        if any(k in n for k in ("bread", "toast", "bun", "bagel", "tortilla", "wrap", "pita")):
+            return CAT_GRAINS, False
+        if any(k in n for k in ("butter", "cheese", "cream", "ghee")):
+            return CAT_DAIRY, False
+        if any(k in n for k in ("oil", "sauce", "dressing", "vinegar", "paste", "syrup", "honey")):
+            return CAT_SPICES, False
         return CAT_SPICES, False
 
-    # Rule 2: Keywords for spices, seasonings, condiments
+    # Rule 1: Breads & Bakery staples (just write bread, not 1 slice bread)
+    if any(k in n for k in ("bread", "toast", "bun", "bagel", "tortilla", "wrap", "pita")):
+        return CAT_GRAINS, False
+
+    # Rule 2: Butter & Spreads (just write butter, not 1 tbsp butter)
+    if any(k in n for k in ("butter", "margarine", "ghee")):
+        return CAT_DAIRY, False
+
+    # Cheeses: show exact weight measurements (g/kg)
+    if any(k in n for k in ("cheese", "cheddar", "parmesan", "mozzarella", "feta", "paneer")):
+        return CAT_DAIRY, True
+
+    # Rule 3: Spices, Seasonings, Condiments & Oils
     spice_keywords = (
         "salt",
         "pepper",
@@ -273,6 +309,11 @@ def _heuristic_classification(name: str, unit: str) -> tuple[str, bool]:
         "cumin",
         "oregano",
         "garlic",
+        "honey",
+        "dressing",
+        "mayo",
+        "mustard",
+        "ketchup",
     )
     if any(k in n for k in spice_keywords):
         return CAT_SPICES, False

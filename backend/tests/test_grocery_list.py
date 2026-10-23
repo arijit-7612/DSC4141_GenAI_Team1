@@ -261,6 +261,75 @@ class GroceryListAndMealPlanTests(unittest.TestCase):
         meat_item_names = [i["name"] for i in categories_dict["Meat & Seafood"]]
         self.assertIn("Chicken Breast", meat_item_names)
 
+    def test_deduplication_and_portion_suppression(self):
+        """
+        Verify that:
+        1. Bread, Butter, Cheese do NOT show slice / tbsp / portion quantities.
+        2. Ingredients used across multiple recipes (like Olive Oil with tbsp vs tsp)
+           are NEVER duplicated on the grocery list.
+        3. Exact measurement items (Chicken Breast, Eggs) combine quantities.
+        """
+        r1 = self.client.post(
+            "/api/recipes",
+            json={
+                "name": "Avocado Toast With Egg",
+                "ingredients": [
+                    {"name": "Sourdough Bread", "quantity": 1, "unit": "slice"},
+                    {"name": "Olive Oil", "quantity": 1, "unit": "tsp"},
+                    {"name": "Egg", "quantity": 2, "unit": "piece"},
+                ],
+            },
+        ).json()
+
+        r2 = self.client.post(
+            "/api/recipes",
+            json={
+                "name": "Banana Pancakes",
+                "ingredients": [
+                    {"name": "Butter", "quantity": 1, "unit": "tbsp"},
+                    {"name": "Olive Oil", "quantity": 1, "unit": "tbsp"},
+                    {"name": "Egg", "quantity": 2, "unit": "piece"},
+                ],
+            },
+        ).json()
+
+        # Add both to meal plan
+        self.client.post("/api/meal-plan", json={"day": "Monday", "meal": "Breakfast", "recipe_id": r1["id"]})
+        self.client.post("/api/meal-plan", json={"day": "Tuesday", "meal": "Breakfast", "recipe_id": r2["id"]})
+
+        res = self.client.get("/api/grocery-list")
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+
+        # Check all item names - NO DUPLICATES ALLOWED
+        all_names = [item["name"] for item in data["items"]]
+        self.assertEqual(len(all_names), len(set(all_names)), f"Duplicates found in grocery list: {all_names}")
+
+        items_by_name = {item["name"]: item for item in data["items"]}
+
+        # Sourdough Bread: show_quantity must be False (no "1 slice bread")
+        self.assertIn("Sourdough Bread", items_by_name)
+        self.assertFalse(items_by_name["Sourdough Bread"]["show_quantity"])
+
+        # Butter: show_quantity must be False (no "1 tbsp butter")
+        self.assertIn("Butter", items_by_name)
+        self.assertFalse(items_by_name["Butter"]["show_quantity"])
+
+        # Olive Oil: used in both recipes (1 tsp vs 1 tbsp) -> MUST BE SINGLE ENTRY
+        self.assertIn("Olive Oil", items_by_name)
+        self.assertFalse(items_by_name["Olive Oil"]["show_quantity"])
+        self.assertCountEqual(
+            items_by_name["Olive Oil"]["recipes"],
+            ["Avocado Toast With Egg", "Banana Pancakes"],
+        )
+
+        # Egg: exact measurement (2 piece + 2 piece) -> COMBINED to 4 piece
+        self.assertIn("Egg", items_by_name)
+        self.assertTrue(items_by_name["Egg"]["show_quantity"])
+        self.assertEqual(items_by_name["Egg"]["quantity"], 4.0)
+        self.assertEqual(items_by_name["Egg"]["unit"], "piece")
+        self.assertEqual(items_by_name["Egg"]["display_quantity"], "4 piece")
+
 
 if __name__ == "__main__":
     unittest.main()
