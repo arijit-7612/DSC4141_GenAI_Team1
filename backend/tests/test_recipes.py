@@ -7,6 +7,7 @@ TEST_DATABASE = Path(tempfile.gettempdir()) / "meal_planner_recipe_tests.db"
 if TEST_DATABASE.exists():
     TEST_DATABASE.unlink()
 os.environ["DATABASE_URL"] = f"sqlite:///{TEST_DATABASE.as_posix()}"
+os.environ["TESTING"] = "1"
 
 from fastapi.testclient import TestClient  # noqa: E402
 from app.database import engine  # noqa: E402

@@ -35,3 +35,52 @@ export const recipesApi = {
   update: (id: number, recipe: RecipeInput) => request<Recipe>(`/api/recipes/${id}`, { method: "PUT", body: JSON.stringify(recipe) }),
   remove: (id: number) => request<void>(`/api/recipes/${id}`, { method: "DELETE" }),
 };
+
+export type MealPlanSlot = {
+  id: number;
+  day: string;
+  meal: string;
+  recipe_id: number;
+  recipe_name: string;
+};
+
+export const mealPlanApi = {
+  list: () => request<MealPlanSlot[]>("/api/meal-plan"),
+  setSlot: (day: string, meal: string, recipe_id: number) =>
+    request<MealPlanSlot>("/api/meal-plan", {
+      method: "POST",
+      body: JSON.stringify({ day, meal, recipe_id }),
+    }),
+  removeSlot: (day: string, meal: string) =>
+    request<void>(`/api/meal-plan/${encodeURIComponent(day)}/${encodeURIComponent(meal)}`, {
+      method: "DELETE",
+    }),
+  clear: () => request<void>("/api/meal-plan", { method: "DELETE" }),
+};
+
+export type GroceryItem = {
+  name: string;
+  quantity: number;
+  unit: string;
+  category: string;
+  show_quantity: boolean;
+  display_quantity: string;
+  recipes: string[];
+};
+
+export type GroceryCategoryGroup = {
+  category: string;
+  items: GroceryItem[];
+};
+
+export type GroceryListResponse = {
+  items: GroceryItem[];
+  categories: GroceryCategoryGroup[];
+  total_items: number;
+  total_recipes: number;
+  planned_meals_count: number;
+};
+
+export const groceryApi = {
+  get: () => request<GroceryListResponse>("/api/grocery-list"),
+};
