@@ -114,6 +114,15 @@ Run the backend:
 uvicorn app.main:app --reload
 ```
 
+### Send a test email
+
+Copy `.env.example` to `.env` and fill in your SMTP credentials. Then run:
+
+```bash
+npm install
+npm run send-email -- recipient@example.com
+```
+
 ### 3. Frontend Setup
 
 ```bash

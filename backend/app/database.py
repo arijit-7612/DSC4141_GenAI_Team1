@@ -2,12 +2,15 @@
 
 import os
 from collections.abc import Generator
+from pathlib import Path
 
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./meal_planner.db")
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{(Path(__file__).resolve().parent.parent / 'meal_planner.db').as_posix()}")
 
 
 class Base(DeclarativeBase):
