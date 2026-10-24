@@ -9,6 +9,7 @@ const links = [
   { href: "/recipes", label: "Recipes" },
   { href: "/weekly-planner", label: "Weekly planner" },
   { href: "/grocery-list", label: "Grocery list" },
+  { href: "/profile", label: "Profile" },
 ];
 
 export function SiteHeader() {

@@ -8,9 +8,9 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
-
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
-DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{(Path(__file__).resolve().parent.parent / 'meal_planner.db').as_posix()}")
+DEFAULT_DB_PATH = Path(__file__).resolve().parent.parent / "meal_planner.db"
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH.as_posix()}")
 
 
 class Base(DeclarativeBase):

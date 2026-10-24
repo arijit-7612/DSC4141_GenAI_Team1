@@ -2,22 +2,21 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.schemas.nutrition import RecipeNutritionRead
+
 
 RecipeUnit = Literal[
     "g",
     "kg",
     "ml",
     "L",
-    "tsp",
-    "tbsp",
-    "cup",
     "piece",
-    "clove",
-    "slice",
     "can",
-    "packet",
-    "bottle",
     "bunch",
+    "slice",
+    "clove",
+    "tbsp",
+    "tsp",
 ]
 
 
@@ -85,3 +84,4 @@ class RecipeRead(BaseModel):
     id: int
     name: str
     ingredients: list[RecipeIngredientRead]
+    nutrition: RecipeNutritionRead | None = None
