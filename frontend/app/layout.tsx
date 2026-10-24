@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./auth.css";
 import { SiteHeader } from "../components/SiteHeader";
+import { AuthGate } from "../components/AuthGate";
 
 export const metadata: Metadata = {
   title: "Smart Bite | Meal planning made simple",
@@ -11,8 +13,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body>
-        <SiteHeader />
-        <main>{children}</main>
+        <AuthGate><SiteHeader /><main>{children}</main></AuthGate>
       </body>
     </html>
   );

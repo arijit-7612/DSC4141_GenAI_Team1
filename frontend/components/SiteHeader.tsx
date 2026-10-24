@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { auth } from "../lib/auth";
 
 const links = [
   { href: "/recipes", label: "Recipes" },
@@ -12,6 +14,9 @@ const links = [
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const router = useRouter();
+  if (pathname === "/login" || pathname === "/register") return null;
+  function logout() { auth.clear(); router.replace("/login"); }
 
   return (
     <header className="site-header">
@@ -27,6 +32,7 @@ export function SiteHeader() {
           })}
         </nav>
         <Link href="/recipes/new" className="button header-action">Add recipe</Link>
+        <button className="link-button" onClick={logout}>Log out</button>
       </div>
     </header>
   );

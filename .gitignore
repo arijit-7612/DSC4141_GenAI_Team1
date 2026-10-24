@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 backend/meal_planner.db
+.env
+node_modules/
 
 # Environment variables & secrets
 .env
