@@ -503,6 +503,29 @@
   display: flex;
   justify-content: flex-end;
 }
+.search-field input {
+  min-width: 0;
+}
+.search-clear {
+  display: grid;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  padding: 0;
+  background: transparent;
+  color: var(--muted);
+}
+.search-clear:hover {
+  background: var(--sage);
+  color: var(--green-dark);
+}
+.search-clear:focus-visible {
+  outline: 3px solid #91c39c;
+  outline-offset: 2px;
+}
 .success-banner {
   background: #eaf5ec;
   border: 1.5px solid #a3d7ae;

@@ -19,9 +19,10 @@ export default function RecipesPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const visibleRecipes = recipes.filter((recipe) =>
-    recipe.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const normalizedSearch = search.trim().toLocaleLowerCase();
+  const visibleRecipes = normalizedSearch
+    ? recipes.filter((recipe) => recipe.name.toLocaleLowerCase().includes(normalizedSearch))
+    : recipes;
 
   return (
     <section className="page">
@@ -40,18 +41,36 @@ export default function RecipesPage() {
 
       <div className="toolbar">
         <label className="search-field">
-          <span aria-hidden="true">⌕</span>
+          <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="10.8" cy="10.8" r="6.8" />
+            <path d="m16 16 4.5 4.5" />
+          </svg>
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search recipes"
-            aria-label="Search recipes"
+            placeholder="Search recipes by name..."
+            aria-label="Search recipes by name"
+            type="text"
           />
+          {search && (
+            <button
+              type="button"
+              className="search-clear"
+              aria-label="Clear recipe search"
+              onClick={() => setSearch("")}
+            >
+              <svg aria-hidden="true" viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="m5 5 10 10M15 5 5 15" />
+              </svg>
+            </button>
+          )}
         </label>
         <span>
           {loading
             ? "Loading recipes…"
-            : `${recipes.length} recipe${recipes.length === 1 ? "" : "s"}`}
+            : normalizedSearch
+              ? `${visibleRecipes.length} of ${recipes.length} recipes`
+              : `${recipes.length} recipe${recipes.length === 1 ? "" : "s"}`}
         </span>
       </div>
 
@@ -87,7 +106,7 @@ export default function RecipesPage() {
         <EmptyState
           icon="⌕"
           title="No recipes found"
-          description="Try a different search term, or add a new recipe to your collection."
+          description={`No recipes found matching your search${search.trim() ? ` “${search.trim()}”` : ""}. Try a different name.`}
         />
       )}
 
