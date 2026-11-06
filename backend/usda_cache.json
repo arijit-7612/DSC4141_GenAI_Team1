@@ -13,5 +13,20 @@
     "is_vegetarian": true,
     "is_dairy_free": true,
     "is_gluten_free": true
+  },
+  "oil": {
+    "calories": 0,
+    "protein": 0.0,
+    "carbs": 0.0,
+    "fat": 0.0,
+    "fiber": 0.0,
+    "sugar": 0.0,
+    "sat_fat": 25.3,
+    "sodium": 0.0,
+    "allergens": [],
+    "is_vegan": true,
+    "is_vegetarian": true,
+    "is_dairy_free": true,
+    "is_gluten_free": true
   }
 }
